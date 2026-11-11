@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>جدولي اليومي</title>
+<style>
+:root{
+  --bg:#f3f1ea; --card:#fbfaf6; --text:#2f3a35; --muted:#6b776f; --line:#dfe3da;
+  --green:#7da58b; --green-soft:#e3efe6; --sand:#efe4cf; --blue-soft:#e2ecf2; --warn:#b5745b;
+  --glow-a:#d5e6da; --glow-b:#eee0c6; --glow-c:#d6e6f0;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1d2421; --card:#252e2a; --text:#e7ece8; --muted:#9aa89f; --line:#35413b;
+    --green:#8fbba0; --green-soft:#2b3a32; --sand:#3a352a; --blue-soft:#27343b; --warn:#d9967c;
+    --glow-a:#22302a; --glow-b:#332e23; --glow-c:#21303a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1d2421; --card:#252e2a; --text:#e7ece8; --muted:#9aa89f; --line:#35413b;
+  --green:#8fbba0; --green-soft:#2b3a32; --sand:#3a352a; --blue-soft:#27343b; --warn:#d9967c;
+  --glow-a:#22302a; --glow-b:#332e23; --glow-c:#21303a;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px); scroll-behavior:smooth; -webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Tajawal","Segoe UI",Tahoma,Arial,sans-serif;line-height:1.7;position:relative;overflow-x:hidden}
+
+/* ===== خلفية متحركة خفيفة ===== */
+body::before{
+  content:"";
+  position:fixed;
+  inset:-25vmax;
+  z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(closest-side, var(--glow-a), transparent 72%) 18% 18%/62vmax 62vmax no-repeat,
+    radial-gradient(closest-side, var(--glow-b), transparent 72%) 84% 78%/56vmax 56vmax no-repeat,
+    radial-gradient(closest-side, var(--glow-c), transparent 72%) 72% 12%/50vmax 50vmax no-repeat;
+  animation:bgDrift 48s ease-in-out infinite alternate;
+  will-change:transform;
+}
+@keyframes bgDrift{
+  0%  {transform:translate3d(-2%,-1%,0) rotate(0deg)   scale(1)}
+  50% {transform:translate3d(2%,2%,0)   rotate(6deg)   scale(1.07)}
+  100%{transform:translate3d(-1%,3%,0)  rotate(-4deg)  scale(1.03)}
+}
+@media (prefers-reduced-motion: reduce){
+  body::before{animation:none}
+  html{scroll-behavior:auto}
+}
+
+main{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:1.6rem;margin:8px 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}
+.block{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:12px;transition:.2s}
+.block.now{border-color:var(--green);box-shadow:0 0 0 2px var(--green-soft)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.title{font-weight:700;font-size:1.1rem}
+.time{color:var(--muted);font-size:.95rem}
+.tag{display:inline-block;font-size:.85rem;padding:2px 12px;border-radius:999px;margin-top:8px}
+.no{background:var(--sand);color:var(--warn)}
+.yes{background:var(--blue-soft);color:var(--text)}
+.focus{background:var(--green-soft)}
+.done{display:flex;align-items:center;gap:8px;margin-top:10px;color:var(--muted);font-size:.95rem}
+.done input{width:20px;height:20px;accent-color:var(--green)}
+.break{text-align:center;color:var(--muted);font-size:.9rem;margin:-2px 0 10px}
+button{font:inherit;background:var(--green);color:#fff;border:0;border-radius:10px;padding:6px 14px;cursor:pointer;margin-top:10px}
+.clock{font-weight:700;margin-inline-start:10px;font-variant-numeric:tabular-nums}
+button{transition:transform .15s,background .2s,opacity .2s}
+button:active{transform:scale(.92)}
+.tasks{margin-top:12px}
+.tlist{list-style:none;margin:0 0 8px;padding:0}
+.task{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin-bottom:8px;transition:background .25s,border-color .25s,opacity .25s,transform .25s}
+.task.enter{animation:pop .3s ease}
+.task.leave{opacity:0;transform:translateX(-24px)}
+@keyframes pop{from{opacity:0;transform:translateY(-8px) scale(.97)}to{opacity:1;transform:none}}
+.ttext{flex:1;word-break:break-word;transition:color .25s}
+.task.s1{background:var(--green-soft);border-color:var(--green)}
+.task.s1 .ttext{text-decoration:line-through;color:var(--muted)}
+.task.s2{background:var(--sand);border-color:var(--warn)}
+.task.s2 .ttext{color:var(--warn)}
+.acts{display:flex;gap:6px;flex-shrink:0}
+.acts button,.addrow button{margin:0}
+.acts button{width:32px;height:32px;padding:0;border-radius:9px;background:var(--card);color:var(--muted);border:1px solid var(--line);font-size:1rem}
+.acts .ok.on{background:var(--green);color:#fff;border-color:var(--green)}
+.acts .no.on{background:var(--warn);color:#fff;border-color:var(--warn)}
+.edit{flex:1;font:inherit;color:var(--text);background:var(--card);border:1px solid var(--green);border-radius:8px;padding:4px 8px;min-width:0}
+.addrow{display:flex;gap:8px}
+.addrow input{flex:1;min-width:0;font:inherit;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.addrow input:focus{outline:2px solid var(--green-soft);border-color:var(--green)}
+h2{font-size:1.2rem;margin:28px 0 10px}
+.rules{list-style:none;margin:0;padding:0}
+.rules li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:8px}
+.rules li::before{content:"✕";color:var(--warn);margin-inline-end:10px;font-weight:700}
+textarea{width:100%;min-height:160px;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:14px;padding:12px;font:inherit;resize:vertical}
+textarea:focus{outline:2px solid var(--green-soft);border-color:var(--green)}
+.hint{color:var(--muted);font-size:.85rem}
+
+/* ===== تكبير على اللابتوب / الشاشات الكبيرة ===== */
+@media (min-width:900px){
+  main{max-width:940px;padding:44px 32px 72px}
+  body{font-size:17px}
+  h1{font-size:2.3rem;margin:4px 0 8px}
+  .sub{font-size:1.1rem;margin-bottom:28px}
+  .block{padding:24px 28px;margin-bottom:16px;border-radius:20px}
+  .top{gap:12px}
+  .title{font-size:1.4rem}
+  .time{font-size:1.1rem}
+  .tag{font-size:.95rem;padding:4px 16px;margin-top:10px}
+  .break{font-size:1rem;margin:2px 0 16px}
+  .done{font-size:1.05rem;margin-top:14px}
+  .done input{width:24px;height:24px}
+  button{padding:10px 22px;font-size:1rem;border-radius:12px;margin-top:12px}
+  .clock{font-size:1.2rem;margin-inline-start:14px}
+  .tasks{margin-top:16px}
+  .task{padding:12px 16px;border-radius:14px;margin-bottom:10px;gap:14px}
+  .ttext{font-size:1.08rem}
+  .acts{gap:8px}
+  .acts button{width:40px;height:40px;font-size:1.15rem;border-radius:11px}
+  .edit{font-size:1.08rem;padding:7px 12px;border-radius:10px}
+  .addrow{gap:10px}
+  .addrow input{padding:12px 16px;font-size:1.05rem;border-radius:12px}
+  h2{font-size:1.6rem;margin:40px 0 14px}
+  .rules li{padding:14px 20px;font-size:1.08rem;border-radius:14px;margin-bottom:10px}
+  textarea{min-height:220px;padding:18px;font-size:1.05rem;border-radius:16px}
+  .hint{font-size:.95rem}
+}
+@media (min-width:1400px){
+  main{max-width:1060px}
+  body{font-size:18px}
+  h1{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<main>
+  <h1>جدولي اليومي</h1>
+  <p class="sub" id="today">خطوة وراء خطوة، وكل جزء بوقته.</p>
+
+  <section class="block" data-s="4" data-e="10" id="b1">
+    <div class="top"><span class="title">الجزء الأول: إنجاز</span><span class="time">٤ صباحاً – ١٠ صباحاً</span></div>
+    <span class="tag focus">تركيز كامل</span> <span class="tag no">بدون سوشال ميديا</span>
+    <div class="tasks" data-b="b1"></div>
+    <label class="done"><input type="checkbox" data-k="b1"> أنجزته اليوم</label>
+  </section>
+  <div class="break">استراحة ١٠ – ١١</div>
+
+  <section class="block" data-s="11" data-e="16" id="b2">
+    <div class="top"><span class="title">الجزء الثاني</span><span class="time">١١ صباحاً – ٤ مساءً</span></div>
+    <span class="tag focus">دراسة</span> <span class="tag no">بدون سوشال ميديا</span>
+    <div class="tasks" data-b="b2"></div>
+    <label class="done"><input type="checkbox" data-k="b2"> أنجزته اليوم</label>
+  </section>
+  <div class="break">استراحة ٤ – ٥</div>
+
+  <section class="block" data-s="17" data-e="20" id="b3">
+    <div class="top"><span class="title">الجزء الثالث</span><span class="time">٥ مساءً – ٨ مساءً</span></div>
+    <span class="tag yes">سوشال ميديا: ٢٠ دقيقة فقط</span>
+    <div><button data-t="t3">ابدأ ٢٠ دقيقة</button><span class="clock" id="t3">20:00</span></div>
+    <div class="tasks" data-b="b3"></div>
+    <label class="done"><input type="checkbox" data-k="b3"> أنجزته اليوم</label>
+  </section>
+
+  <section class="block" data-s="20" data-e="24" id="b4" style="margin-top:12px">
+    <div class="top"><span class="title">الجزء الرابع</span><span class="time">٨ مساءً – ١١ أو ١٢ ليلاً</span></div>
+    <span class="tag yes">سوشال ميديا: ٢٠ دقيقة فقط</span>
+    <div><button data-t="t4">ابدأ ٢٠ دقيقة</button><span class="clock" id="t4">20:00</span></div>
+    <div class="tasks" data-b="b4"></div>
+    <label class="done"><input type="checkbox" data-k="b4"> أنجزته اليوم</label>
+  </section>
+
+  <h2>أشياء لازم ما أسويها</h2>
+  <ul class="rules">
+    <li>أحكي معلومات شفتها</li>
+    <li>أمزح مع اللي حولي</li>
+    <li>أتكلم كثير، أكون أكثر سكوتاً</li>
+  </ul>
+
+  <h2>ملاحظاتي</h2>
+  <textarea id="notes" placeholder="اكتب هنا أي معلومة بدك تحتفظ فيها..."></textarea>
+  <p class="hint" id="saved">تُحفظ الملاحظات تلقائياً على هذا الجهاز.</p>
+</main>
+<script>
+(function(){
+  var store = {
+    get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
+    set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  };
+  var day = new Date().toISOString().slice(0,10);
+
+  // highlight current block
+  function mark(){
+    var h = new Date().getHours();
+    document.querySelectorAll('.block').forEach(function(b){
+      var s=+b.dataset.s, e=+b.dataset.e;
+      b.classList.toggle('now', h>=s && h<e);
+    });
+  }
+  mark(); setInterval(mark, 60000);
+
+  // daily checkboxes (reset each day)
+  document.querySelectorAll('input[data-k]').forEach(function(c){
+    var key = 'done:'+day+':'+c.dataset.k;
+    c.checked = store.get(key)==='1';
+    c.addEventListener('change', function(){store.set(key, c.checked?'1':'0')});
+  });
+
+  // 20-minute timers
+  var timers = {};
+  document.querySelectorAll('button[data-t]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var id = btn.dataset.t, el = document.getElementById(id);
+      if(timers[id]){clearInterval(timers[id]); timers[id]=null; btn.textContent='ابدأ ٢٠ دقيقة'; el.textContent='20:00'; return;}
+      var end = Date.now()+20*60*1000;
+      btn.textContent='إيقاف';
+      timers[id] = setInterval(function(){
+        var left = Math.max(0, Math.round((end-Date.now())/1000));
+        var m = String(Math.floor(left/60)).padStart(2,'0'), s = String(left%60).padStart(2,'0');
+        el.textContent = m+':'+s;
+        if(left===0){clearInterval(timers[id]); timers[id]=null; btn.textContent='ابدأ ٢٠ دقيقة'; el.textContent='انتهى الوقت، سكّر التطبيق';}
+      }, 500);
+    });
+  });
+
+  // tasks (s: 0 none, 1 done, 2 not done)
+  var tasks;
+  try{tasks = JSON.parse(store.get('tasks')||'{}')}catch(e){tasks = {}}
+  function saveTasks(){store.set('tasks', JSON.stringify(tasks))}
+  function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+  function btn(sym, label, cls){
+    var b = document.createElement('button');
+    b.type='button'; b.className=cls; b.textContent=sym; b.title=label; b.setAttribute('aria-label', label);
+    return b;
+  }
+  function makeTask(bid, task, isNew){
+    var li = document.createElement('li');
+    li.className = 'task' + (isNew ? ' enter' : '');
+    var txt = document.createElement('span'); txt.className = 'ttext';
+    var acts = document.createElement('span'); acts.className = 'acts';
+    var ok = btn('✓','تم الإنجاز','ok'), no = btn('✕','لم يتم','no'),
+        ed = btn('✎','تعديل','ed'), del = btn('🗑','حذف','del');
+    acts.append(ok, no, ed, del);
+    li.append(txt, acts);
+    function paint(){
+      txt.textContent = task.t;
+      li.classList.toggle('s1', task.s===1); li.classList.toggle('s2', task.s===2);
+      ok.classList.toggle('on', task.s===1); no.classList.toggle('on', task.s===2);
+    }
+    ok.addEventListener('click', function(){task.s = task.s===1 ? 0 : 1; saveTasks(); paint()});
+    no.addEventListener('click', function(){task.s = task.s===2 ? 0 : 2; saveTasks(); paint()});
+    ed.addEventListener('click', function(){
+      if(li.querySelector('.edit')) return;
+      var inp = document.createElement('input'); inp.className='edit'; inp.value = task.t;
+      li.replaceChild(inp, txt); inp.focus(); inp.select();
+      var finished = false;
+      function finish(commit){
+        if(finished) return; finished = true;
+        var v = inp.value.trim();
+        if(commit && v){task.t = v; saveTasks()}
+        li.replaceChild(txt, inp); paint();
+      }
+      inp.addEventListener('keydown', function(e){
+        if(e.key==='Enter') finish(true);
+        if(e.key==='Escape') finish(false);
+      });
+      inp.addEventListener('blur', function(){finish(true)});
+    });
+    del.addEventListener('click', function(){
+      tasks[bid] = (tasks[bid]||[]).filter(function(x){return x.id!==task.id});
+      saveTasks();
+      li.classList.add('leave');
+      setTimeout(function(){li.remove()}, 260);
+    });
+    paint();
+    return li;
+  }
+  document.querySelectorAll('.tasks').forEach(function(box){
+    var bid = box.dataset.b;
+    var list = document.createElement('ul'); list.className = 'tlist';
+    var row = document.createElement('div'); row.className = 'addrow';
+    var inp = document.createElement('input'); inp.type='text'; inp.placeholder='اكتب المهمة...';
+    var add = document.createElement('button'); add.type='button'; add.textContent='إضافة';
+    row.append(inp, add);
+    box.append(list, row);
+    (tasks[bid]||[]).forEach(function(t){list.appendChild(makeTask(bid, t, false))});
+    function addTask(){
+      var v = inp.value.trim(); if(!v) return;
+      var t = {id: uid(), t: v, s: 0};
+      (tasks[bid] = tasks[bid] || []).push(t);
+      saveTasks();
+      list.appendChild(makeTask(bid, t, true));
+      inp.value = ''; inp.focus();
+    }
+    add.addEventListener('click', addTask);
+    inp.addEventListener('keydown', function(e){if(e.key==='Enter') addTask()});
+  });
+
+  // notes
+  var n = document.getElementById('notes');
+  var v = store.get('notes'); if(v) n.value = v;
+  n.addEventListener('input', function(){store.set('notes', n.value)});
+})();
+</script>
+</body>
+</html>
